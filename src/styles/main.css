@@ -165,7 +165,7 @@ h3 {
 }
 
 .flip-arrow[disabled] {
-    opacity: .85;
+    opacity: .75;
     pointer-events: none;
 }
 
