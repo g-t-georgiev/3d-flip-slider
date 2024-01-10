@@ -49,7 +49,7 @@ if (slides.length > 0) {
             activeTarget = slide;
             slide.classList.add('curr');
             page.setAttribute('data-active', '');
-            arrowLeft.toggleAttribute('disabled', index === 0);
+            arrowLeft.toggleAttribute('disabled', activeIndex === 0);
             arrowRight.toggleAttribute('disabled', activeIndex === slides.length - 1);
             return;
         }
