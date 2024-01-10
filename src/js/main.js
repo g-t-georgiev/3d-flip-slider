@@ -56,6 +56,8 @@ if (slides.length > 0) {
     });
 }
 
+setupSwipingAction();
+
 function toggleSlides(index) {
     if (index < 0 || index >= slides.length) return;
 
@@ -94,4 +96,53 @@ function togglePagination(index) {
     if (activePage) activePage.removeAttribute('data-active');
     activePage = pages[index];
     if (activePage) activePage.setAttribute('data-active', '');
+}
+
+function setupSwipingAction() {
+    let rotation = 0;
+    let offsetX = slidesTrack.clientLeft;
+    let startX = offsetX;
+    let newIndex, nextTarget;
+    let isDragging = false;
+
+    slidesTrack.addEventListener('pointerdown', onTouchStart);
+    document.addEventListener('pointerup', onTouchEnd);
+    document.addEventListener('pointercancel', onTouchEnd);
+    document.addEventListener('pointermove', onTouchMove);
+
+    function onTouchStart(event) {
+        isDragging = true;
+        startX = event.clientX - offsetX;
+    }
+
+    function onTouchEnd(event) {
+        if (!isDragging) return;
+        isDragging = false;
+        activeTarget.style.removeProperty('rotate');
+        nextTarget?.style.removeProperty('rotate');
+        nextTarget?.style.removeProperty('visibility');
+        togglePagination(newIndex);
+        toggleSlides(newIndex);
+    }
+
+    function onTouchMove(event) {
+        if (!isDragging) return;
+        event.preventDefault();
+
+        let deltaX = (event.clientX - offsetX) - startX;
+        rotation = deltaX / 3 * 1;
+
+        activeTarget.style.setProperty('rotate', `y ${rotation}deg`);
+        newIndex = activeIndex - Math.sign(rotation);
+        nextTarget = slides.item(newIndex);
+
+        if (!nextTarget || activeTarget == nextTarget) {
+            newIndex = activeIndex;
+            return;
+        }
+
+        let defaultRotation = newIndex < activeIndex ? -180 : 180;
+        nextTarget?.style.setProperty('rotate', `y ${defaultRotation + rotation}deg`);
+        nextTarget?.style.setProperty('visibility', 'visible');
+    }
 }
