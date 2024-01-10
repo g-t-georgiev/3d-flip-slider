@@ -164,7 +164,7 @@ h3 {
     transition: opacity .3s;
 }
 
-.flip-arrow.disabled {
+.flip-arrow[disabled] {
     opacity: .85;
     pointer-events: none;
 }
