@@ -1,5 +1,6 @@
 const slider = document.querySelector('[data-slider]');
-const slides = slider.querySelectorAll('[data-slide]');
+const slidesTrack = slider.querySelector('[data-track]');
+const slides = slidesTrack.querySelectorAll('[data-slide]');
 const arrows = slider.querySelector('[data-arrows]');
 const arrowLeft = arrows.querySelector('[data-arrow-left]');
 const arrowRight = arrows.querySelector('[data-arrow-right]');
