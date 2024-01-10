@@ -76,7 +76,7 @@ h3 {
     rotate: y -180deg;
     -webkit-backface-visibility: hidden;
     backface-visibility: hidden;
-    transition: rotate 0.6s ease-in;
+    transition: rotate .22s;
 }
 
 .flip-card.prev {
