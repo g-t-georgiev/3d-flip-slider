@@ -49,8 +49,8 @@ if (slides.length > 0) {
             activeTarget = slide;
             slide.classList.add('curr');
             page.setAttribute('data-active', '');
-            arrowLeft.classList.toggle('disabled', activeIndex === 0);
-            arrowRight.classList.toggle('disabled', activeIndex === slides.length - 1);
+            arrowLeft.toggleAttribute('disabled', index === 0);
+            arrowRight.toggleAttribute('disabled', activeIndex === slides.length - 1);
             return;
         }
     });
@@ -60,8 +60,8 @@ function toggleSlides(index) {
     if (index < 0 || index >= slides.length) return;
 
     console.log('Go to slide', index);
-    arrowLeft.classList.toggle('disabled', index === 0);
-    arrowRight.classList.toggle('disabled', index === slides.length - 1);
+    arrowLeft.toggleAttribute('disabled', index === 0);
+    arrowRight.toggleAttribute('disabled', index === slides.length - 1);
 
     if (prevTarget) {
         prevTarget.classList.remove('prev');
