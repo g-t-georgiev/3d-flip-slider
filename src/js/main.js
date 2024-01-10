@@ -30,7 +30,6 @@ paginator?.addEventListener('click', function (event) {
     const isActiveTargetElement = isTargetElement && eventTarget.matches('[data-active]');
     if (!isTargetElement || isActiveTargetElement) return;
     const index = pages.findIndex(page => page === eventTarget);
-    console.log('Go to slide', index);
     if (index == -1) return;
     togglePagination(index);
     toggleSlides(index);
@@ -47,9 +46,11 @@ if (slides.length > 0) {
         paginator.append(page);
     
         if (i === activeIndex) {
-            page.setAttribute('data-active', '');
-            slide.classList.add('curr');
             activeTarget = slide;
+            slide.classList.add('curr');
+            page.setAttribute('data-active', '');
+            arrowLeft.classList.toggle('disabled', activeIndex === 0);
+            arrowRight.classList.toggle('disabled', activeIndex === slides.length - 1);
             return;
         }
     });
@@ -57,6 +58,10 @@ if (slides.length > 0) {
 
 function toggleSlides(index) {
     if (index < 0 || index >= slides.length) return;
+
+    console.log('Go to slide', index);
+    arrowLeft.classList.toggle('disabled', index === 0);
+    arrowRight.classList.toggle('disabled', index === slides.length - 1);
 
     if (prevTarget) {
         prevTarget.classList.remove('prev');
