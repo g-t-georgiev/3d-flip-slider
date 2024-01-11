@@ -76,10 +76,11 @@ h3 {
     rotate: y -180deg;
     -webkit-backface-visibility: hidden;
     backface-visibility: hidden;
-    transition: rotate .22s;
+    transition: rotate 0.22s;
 }
 
-.flip-card.prev {
+.flip-card.prev, 
+.flip-card.next {
     visibility: visible;
 }
 
@@ -163,7 +164,7 @@ h3 {
     border: 1px solid #000;
     cursor: pointer;
     overflow: hidden;
-    transition: opacity .3s;
+    transition: opacity .22s;
 }
 
 .flip-arrow[disabled] {
