@@ -106,16 +106,33 @@ function setupSwipingAction() {
     let newIndex, nextTarget;
     let isDragging = false;
 
-    slidesTrack.addEventListener('pointerdown', onTouchStart);
-    document.addEventListener('pointerup', onTouchEnd);
-    document.addEventListener('pointercancel', onTouchEnd);
-    document.addEventListener('pointermove', onTouchMove);
+    slidesTrack.addEventListener('mousedown', onTouchStart);
+    slidesTrack.addEventListener('touchstart', onTouchStart);
+    document.addEventListener('mouseup', onTouchEnd);
+    document.addEventListener('touchend', onTouchEnd);
+    document.addEventListener('touchcancel', onTouchEnd);
+    document.addEventListener('mousemove', onTouchMove);
+    document.addEventListener('touchmove', onTouchMove, { passive: false });
 
+    /**
+     * Handle touch start or pointer down events.
+     * @param {PointerEvent | MouseEvent | TouchEvent} event 
+     * @returns {void}
+     */
     function onTouchStart(event) {
+        let clientX = event.clientX;
+        if ('TouchEvent' in window && event instanceof TouchEvent) {
+            clientX = event.touches[0].clientX;
+        }
         isDragging = true;
-        startX = event.clientX - offsetX;
+        startX = clientX - offsetX;
     }
 
+    /**
+     * Handle touch end/cancel or pointer up events.
+     * @param {PointerEvent | MouseEvent | TouchEvent} event 
+     * @returns {void}
+     */
     function onTouchEnd(event) {
         if (!isDragging) return;
         isDragging = false;
@@ -126,11 +143,20 @@ function setupSwipingAction() {
         toggleSlides(newIndex);
     }
 
+    /**
+     * Handle touch move or pointer move events.
+     * @param {PointerEvent | MouseEvent | TouchEvent} event 
+     * @returns {void}
+     */
     function onTouchMove(event) {
         if (!isDragging) return;
         event.preventDefault();
+        let clientX = event.clientX;
+        if ('TouchEvent' in window && event instanceof TouchEvent) {
+            clientX = event.touches[0].clientX;
+        }
 
-        let deltaX = (event.clientX - offsetX) - startX;
+        let deltaX = (clientX - offsetX) - startX;
         rotation = deltaX / 3 * 1;
 
         activeTarget.style.setProperty('rotate', `y ${rotation}deg`);
