@@ -47,11 +47,11 @@ if (slides.length > 0) {
         paginator.append(page);
     
         if (i === activeIndex) {
-            activeTarget = slide;
-            slide.classList.add('curr');
-            page.setAttribute('data-active', '');
             arrowLeft.toggleAttribute('disabled', activeIndex === 0);
             arrowRight.toggleAttribute('disabled', activeIndex === slides.length - 1);
+            page.setAttribute('data-active', '');
+            slide.classList.add('curr');
+            activeTarget = slide;
             return;
         }
     });
@@ -88,8 +88,6 @@ function toggleSlides(index) {
         activeTarget = newActiveTarget;
         activeIndex = index;
     }
-
-
 }
 
 function togglePagination(index) {
@@ -114,6 +112,7 @@ function setupSwipingAction() {
     document.addEventListener('mousemove', onTouchMove);
     document.addEventListener('touchmove', onTouchMove, { passive: false });
 
+
     /**
      * Handle touch start or pointer down events.
      * @param {PointerEvent | MouseEvent | TouchEvent} event 
@@ -136,9 +135,9 @@ function setupSwipingAction() {
     function onTouchEnd(event) {
         if (!isDragging) return;
         isDragging = false;
-        activeTarget.style.removeProperty('rotate');
-        nextTarget?.style.removeProperty('rotate');
+        activeTarget?.style.removeProperty('rotate');
         nextTarget?.style.removeProperty('visibility');
+        nextTarget?.style.removeProperty('rotate');
         togglePagination(newIndex);
         toggleSlides(newIndex);
     }
@@ -157,19 +156,19 @@ function setupSwipingAction() {
         }
 
         let deltaX = (clientX - offsetX) - startX;
-        rotation = deltaX / 3 * 1;
+        rotation = deltaX / 2 * 1;
 
         activeTarget.style.setProperty('rotate', `y ${rotation}deg`);
-        newIndex = activeIndex - Math.sign(rotation);
-        nextTarget = slides.item(newIndex);
 
-        if (!nextTarget || activeTarget == nextTarget) {
+        if (Math.abs(rotation) < 90) {
             newIndex = activeIndex;
             return;
         }
-
-        let defaultRotation = newIndex < activeIndex ? -180 : 180;
-        nextTarget?.style.setProperty('rotate', `y ${defaultRotation + rotation}deg`);
+        
+        newIndex = activeIndex - Math.sign(rotation);
+        newIndex = Math.max(Math.min(slides.length - 1, newIndex), 0);
+        nextTarget = slides.item(newIndex);
+        nextTarget?.style.setProperty('rotate', `y ${(newIndex < activeIndex ? -180 : 180) + rotation}deg`);
         nextTarget?.style.setProperty('visibility', 'visible');
     }
 }
