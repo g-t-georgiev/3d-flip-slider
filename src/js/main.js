@@ -7,101 +7,156 @@ const arrowRight = arrows.querySelector('[data-arrow-right]');
 const paginator = slider.querySelector('[data-paginator]');
 const pages = [];
 
-let activeIndex = 0;
-let activeTarget = null;
-let prevTarget = null;
+let index = 0;
+let active = null;
+let isLocked = false;
 
-arrowLeft?.addEventListener('click', function () {
-    let nextIndex = activeIndex - 1;
-    if (nextIndex < 0) return;
-    togglePagination(nextIndex);
-    toggleSlides(nextIndex);
-});
+load();
 
-arrowRight?.addEventListener('click', function () {
-    let nextIndex = activeIndex + 1;
-    if (nextIndex >= slides.length) return;
-    togglePagination(nextIndex);
-    toggleSlides(nextIndex);
-});
+function load() {
+    if (slides.length > 0) {
+        paginator.innerHTML = '';
 
-paginator?.addEventListener('click', function (event) {
-    const eventTarget = event.target;
-    const isTargetElement = eventTarget !== null && eventTarget.matches('[data-page]');
-    const isActiveTargetElement = isTargetElement && eventTarget.matches('[data-active]');
-    if (!isTargetElement || isActiveTargetElement) return;
-    const index = pages.findIndex(page => page === eventTarget);
-    if (index == -1) return;
-    togglePagination(index);
-    toggleSlides(index);
-});
+        slides.forEach(function (slide, i) {
+            const page = document.createElement('div');
+            page.classList.add('flip-paginator-bullet');
+            page.setAttribute('data-page', '');
+            pages.push(page);
+            paginator.append(page);
 
-if (slides.length > 0) {
-    paginator.innerHTML = '';
+            slide.style.setProperty('--i', i);
+            slide.style.setProperty('rotate', `y ${Math.sign(i - index) * 180}deg`);
+            slide.style.setProperty('opacity', i === index ? 1 : 0);
+            toggleArrowButtons(index);
 
-    slides.forEach(function (slide, i) {
-        const page = document.createElement('div');
-        page.classList.add('flip-paginator-bullet');
-        page.setAttribute('data-page', '');
-        pages.push(page);
-        paginator.append(page);
+            if (i === index) {
+                page.setAttribute('data-active', '');
+                slide.classList.add('current');
+                active = slide;
+                return;
+            }
+        });
+
+        arrowLeft?.addEventListener('click', function () {
+            if (isLocked) return;
+            let nextIndex = index - 1;
+            if (nextIndex < 0) return;
+            toggleSlides(nextIndex);
+        });
+        
+        arrowRight?.addEventListener('click', function () {
+            if (isLocked) return;
+            let nextIndex = index + 1;
+            if (nextIndex >= slides.length) return;
+            toggleSlides(nextIndex);
+        });
+
+        paginator?.addEventListener('click', function (event) {
+            if (isLocked) return;
+            const eventTarget = event.target;
+            const isTargetElement = eventTarget !== null && eventTarget.matches('[data-page]');
+            const isActiveTargetElement = isTargetElement && eventTarget.matches('[data-active]');
+            if (!isTargetElement || isActiveTargetElement) return;
+            const index = pages.findIndex(page => page === eventTarget);
+            if (index == -1) return;
+            toggleSlides(index);
+        });
+
+        setupSwipeActionHandlers();
+
+        let timeoutId = setTimeout(function () {
+            clearTimeout(timeoutId);
+            slidesTrack.style.setProperty('visibility', 'visible');
+        }, 500);
+    }
+}
+
+function toggleSlides(newIndex) {
+    if (newIndex < 0 || newIndex >= slides.length) return;
+
+    isLocked = true;
+    // console.log('Go to slide', newIndex);
+
+    if (newIndex > index) {
+        // console.log('Direction LTR');
+    } else if (newIndex < index) {
+        // console.log('Direction RTL');
+    }
+
+    let currentSlide = slides[index];
+    currentSlide.style.setProperty('opacity', 1);
     
-        if (i === activeIndex) {
-            arrowLeft.toggleAttribute('disabled', activeIndex === 0);
-            arrowRight.toggleAttribute('disabled', activeIndex === slides.length - 1);
-            page.setAttribute('data-active', '');
-            slide.classList.add('curr');
-            activeTarget = slide;
-            return;
-        }
-    });
+    let nextSlide = slides[newIndex];
+    nextSlide.style.setProperty('opacity', 1);
+
+    let finishedTasks = 0;
+    const targetTasks = 2;
+    const onTransitionsComplete = function () {
+        finishedTasks = 0;
+        currentSlide.removeEventListener('transitionend', onTransitionEndHandler1);
+        nextSlide.removeEventListener('transitionend', onTransitionEndHandler2);
+        slides.forEach(function (slide, i) {
+            if (i === index) {
+                slide.style.setProperty('opacity', 0);
+                slide.classList.remove('current');
+                return;
+            }
+
+            if (i === newIndex) {
+                slide.style.setProperty('opacity', 1);
+                slide.classList.add('current');
+                return;
+            }
+
+            if (i < newIndex) {
+                slide.style.setProperty('rotate', 'y -180deg');
+            } else {
+                slide.style.setProperty('rotate', 'y 180deg');
+            }
+        });
+
+        toggleArrowButtons(newIndex);
+        togglePagination(newIndex);
+        index = newIndex;
+        isLocked = false;
+    };
+    const onTransitionEndHandler1 = function (event) {
+        if (event.propertyName !== 'rotate') return;
+        finishedTasks++;
+        if (finishedTasks === targetTasks) onTransitionsComplete();
+    };
+    const onTransitionEndHandler2 = function (event) {
+        if (event.propertyName !== 'rotate') return;
+        finishedTasks++;
+        if (finishedTasks === targetTasks) onTransitionsComplete();
+    };
+
+    currentSlide.addEventListener('transitionend', onTransitionEndHandler1);
+    nextSlide.addEventListener('transitionend', onTransitionEndHandler2);
+
+    currentSlide.style.setProperty('rotate', `y ${Math.sign(index - newIndex) * 180}deg`);
+    nextSlide.style.setProperty('rotate', `y 0deg`);
 }
 
-setupSwipingAction();
-
-function toggleSlides(index) {
-    if (index < 0 || index >= slides.length) return;
-
-    console.log('Go to slide', index);
-    arrowLeft.toggleAttribute('disabled', index === 0);
-    arrowRight.toggleAttribute('disabled', index === slides.length - 1);
-
-    if (prevTarget) {
-        prevTarget.classList.remove('prev');
-    }
-
-    if (activeTarget) {
-        prevTarget = activeTarget;
-        prevTarget.classList.add('prev');
-        activeTarget.classList.remove('curr');
-    }
-
-    if (index > activeIndex) {
-        console.log('Direction LTR');
-    } else if (index < activeIndex) {
-        console.log('Direction RTL');
-    }
-
-    const newActiveTarget = slides.item(index);
-    if (newActiveTarget) {
-        newActiveTarget.classList.add('curr');
-        activeTarget = newActiveTarget;
-        activeIndex = index;
-    }
-}
-
-function togglePagination(index) {
-    let activePage = pages.find((page, i) => page.hasAttribute('data-active'));
+function togglePagination(newIndex) {
+    let activePage = pages.find(page => page.hasAttribute('data-active'));
     if (activePage) activePage.removeAttribute('data-active');
-    activePage = pages[index];
+    activePage = pages[newIndex];
     if (activePage) activePage.setAttribute('data-active', '');
 }
 
-function setupSwipingAction() {
-    let rotation = 0;
+function toggleArrowButtons(index) {
+    arrowLeft.toggleAttribute('disabled', index === 0);
+    arrowRight.toggleAttribute('disabled', index === slides.length - 1);
+}
+
+function setupSwipeActionHandlers() {
+    let currentIndex;
+    let slidesTotalWidth = 0;
+    let scaleFactor = 0;
+    let rotate = 0;
     let offsetX = slidesTrack.clientLeft;
     let startX = offsetX;
-    let newIndex, nextTarget;
     let isDragging = false;
 
     slidesTrack.addEventListener('mousedown', onTouchStart);
@@ -124,7 +179,13 @@ function setupSwipingAction() {
             clientX = event.touches[0].clientX;
         }
         isDragging = true;
+        currentIndex = index;
         startX = clientX - offsetX;
+        slidesTotalWidth = Array.prototype.reduce.call(slides, (w, s) => {
+            s.style.setProperty('opacity', 1);
+            return w + s.clientWidth;
+        }, 0);
+        scaleFactor = (slidesTotalWidth - slidesTrack.clientWidth) / (slides.length * 2);
     }
 
     /**
@@ -135,11 +196,10 @@ function setupSwipingAction() {
     function onTouchEnd(event) {
         if (!isDragging) return;
         isDragging = false;
-        activeTarget?.style.removeProperty('rotate');
-        nextTarget?.style.removeProperty('visibility');
-        nextTarget?.style.removeProperty('rotate');
-        togglePagination(newIndex);
-        toggleSlides(newIndex);
+        slides.forEach((slide, i) => {
+            slide.style.setProperty('rotate', `y ${Math.sign(i - index) * 180}deg`);
+            slide.style.setProperty('opacity', i === index ? 1 : 0);
+        });
     }
 
     /**
@@ -154,21 +214,21 @@ function setupSwipingAction() {
         if ('TouchEvent' in window && event instanceof TouchEvent) {
             clientX = event.touches[0].clientX;
         }
-
         let deltaX = (clientX - offsetX) - startX;
-        rotation = deltaX / 2 * 1;
 
-        activeTarget.style.setProperty('rotate', `y ${rotation}deg`);
+        slides.forEach((slide, i) => {
+            // console.log('Current active index', index);
+            rotate = ((deltaX + (scaleFactor * ((i - currentIndex) - 1))) * 360 / (scaleFactor * 2)) + 180;
+            rotate = Math.max(-180, Math.min(rotate, 180));
+            if (rotate > -90 && rotate <= 90 && index !== i) {
+                index = i;
+                toggleArrowButtons(index);
+                togglePagination(index);
+                // console.log('Active index changed', index);
+            }
 
-        if (Math.abs(rotation) < 90) {
-            newIndex = activeIndex;
-            return;
-        }
-        
-        newIndex = activeIndex - Math.sign(rotation);
-        newIndex = Math.max(Math.min(slides.length - 1, newIndex), 0);
-        nextTarget = slides.item(newIndex);
-        nextTarget?.style.setProperty('rotate', `y ${(newIndex < activeIndex ? -180 : 180) + rotation}deg`);
-        nextTarget?.style.setProperty('visibility', 'visible');
+            slide.classList.toggle('current', i === index);
+            slide.style.setProperty('rotate', `y ${rotate}deg`);
+        });
     }
 }
