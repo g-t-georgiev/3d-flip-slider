@@ -63,6 +63,8 @@ h3 {
     transform-style: preserve-3d;
     perspective: 1000px;
     visibility: hidden;
+    user-select: none;
+    touch-action: none;
 }
 
 .flip-card {
@@ -77,6 +79,8 @@ h3 {
     -webkit-backface-visibility: hidden;
     backface-visibility: hidden;
     transition: rotate .3s ease-out;
+    user-select: none;
+    touch-action: none;
 }
 
 .flip-card-content {
