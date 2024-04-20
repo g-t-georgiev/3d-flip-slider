@@ -159,14 +159,11 @@ function setupSwipeActionHandlers() {
     let startX = offsetX;
     let isDragging = false;
 
-    slidesTrack.addEventListener('mousedown', onTouchStart);
-    slidesTrack.addEventListener('touchstart', onTouchStart);
-    document.addEventListener('mouseup', onTouchEnd);
-    document.addEventListener('touchend', onTouchEnd);
-    document.addEventListener('touchcancel', onTouchEnd);
-    document.addEventListener('mousemove', onTouchMove);
-    document.addEventListener('touchmove', onTouchMove, { passive: false });
+    slidesTrack.addEventListener('dragstart', () => false);
+    slidesTrack.addEventListener('dragover', () => false);
+    slidesTrack.addEventListener('dragend', () => false);
 
+    slidesTrack.addEventListener('pointerdown', onTouchStart);
 
     /**
      * Handle touch start or pointer down events.
@@ -174,10 +171,13 @@ function setupSwipeActionHandlers() {
      * @returns {void}
      */
     function onTouchStart(event) {
+        event.preventDefault();
+        slidesTrack.setPointerCapture(event.pointerId);
+        slidesTrack.addEventListener('pointerup', onTouchEnd);
+        slidesTrack.addEventListener('pointermove', onTouchMove);
+        
         let clientX = event.clientX;
-        if ('TouchEvent' in window && event instanceof TouchEvent) {
-            clientX = event.touches[0].clientX;
-        }
+        
         isDragging = true;
         currentIndex = index;
         startX = clientX - offsetX;
@@ -194,6 +194,10 @@ function setupSwipeActionHandlers() {
      * @returns {void}
      */
     function onTouchEnd(event) {
+        event.preventDefault();
+        slidesTrack.removeEventListener('pointerup', onTouchEnd);
+        slidesTrack.removeEventListener('pointermove', onTouchMove);
+        
         if (!isDragging) return;
         isDragging = false;
         slides.forEach((slide, i) => {
@@ -208,14 +212,16 @@ function setupSwipeActionHandlers() {
      * @returns {void}
      */
     function onTouchMove(event) {
-        if (!isDragging) return;
         event.preventDefault();
+        
+        if (!isDragging) return;
         let clientX = event.clientX;
+        
         if ('TouchEvent' in window && event instanceof TouchEvent) {
             clientX = event.touches[0].clientX;
         }
+        
         let deltaX = (clientX - offsetX) - startX;
-
         slides.forEach((slide, i) => {
             // console.log('Current active index', index);
             rotate = ((deltaX + (scaleFactor * ((i - currentIndex) - 1))) * 360 / (scaleFactor * 2)) + 180;
