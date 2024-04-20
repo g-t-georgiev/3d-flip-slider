@@ -213,7 +213,6 @@ function setupSwipeActionHandlers() {
      */
     function onTouchMove(event) {
         event.preventDefault();
-        console.log(this);
         
         if (!isDragging) return;
         let clientX = event.clientX;
