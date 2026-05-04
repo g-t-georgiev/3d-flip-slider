@@ -60,7 +60,7 @@ h3 {
     opacity: 0;
     -webkit-backface-visibility: hidden;
     backface-visibility: hidden;
-    transition: rotate .3s ease-out;
+    transition: transform .3s ease-out;
     user-select: none;
     touch-action: none;
 }
